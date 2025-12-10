@@ -55,11 +55,22 @@ FetchContent_Declare(
     GIT_TAG v1.8.3
 )
 
+# pybind11 for Python bindings
+# Use CMake's FindPython3 (more reliable than pybind11's legacy detection)
+find_package(Python3 COMPONENTS Interpreter Development NumPy QUIET)
+set(PYBIND11_FINDPYTHON ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    pybind11
+    GIT_REPOSITORY https://github.com/pybind/pybind11.git
+    GIT_TAG v2.11.1
+)
+
 # Disable benchmark tests to speed up build
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(googletest googlebenchmark)
+FetchContent_MakeAvailable(googletest googlebenchmark pybind11)
 
 # ============================================================================
 # Source Files (library)
@@ -90,6 +101,27 @@ target_link_libraries(itch_benchmark
         itch_parser
         benchmark::benchmark
         benchmark::benchmark_main
+)
+
+# ============================================================================
+# Python Bindings (pybind11)
+# ============================================================================
+pybind11_add_module(itch_handler
+    src/python_bindings.cpp
+)
+target_link_libraries(itch_handler
+    PRIVATE
+        itch_parser
+)
+# Python module needs exceptions and RTTI enabled (override project-wide flags)
+# pybind11 requires both -fexceptions and -frtti
+target_compile_options(itch_handler PRIVATE -fexceptions -frtti)
+
+# Copy Python demo script to build directory
+configure_file(
+    ${CMAKE_SOURCE_DIR}/python/demo.py
+    ${CMAKE_BINARY_DIR}/demo.py
+    COPYONLY
 )
 
 # ============================================================================
