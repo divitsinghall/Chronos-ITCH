@@ -19,6 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Compiler Flags for Low-Latency
 # ============================================================================
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    # Common flags for all targets
     add_compile_options(
         -Wall
         -Wextra
@@ -26,9 +27,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
         -Werror
         -O3
         -march=native
-        -fno-exceptions       # Exceptions are too slow for HFT
-        -fno-rtti             # RTTI has overhead
     )
+    # Note: -fno-exceptions and -fno-rtti are applied per-target
+    # because GoogleTest requires both RTTI and exceptions
 endif()
 
 # ============================================================================
@@ -89,6 +90,8 @@ target_link_libraries(itch_driver
     PRIVATE
         itch_parser
 )
+# HFT compile options for production code
+target_compile_options(itch_driver PRIVATE -fno-exceptions -fno-rtti)
 # ============================================================================
 # Benchmarks
 # ============================================================================
@@ -102,6 +105,8 @@ target_link_libraries(itch_benchmark
         benchmark::benchmark
         benchmark::benchmark_main
 )
+# HFT compile options for benchmark code
+target_compile_options(itch_benchmark PRIVATE -fno-exceptions -fno-rtti)
 
 # ============================================================================
 # Python Bindings (pybind11)
@@ -125,9 +130,26 @@ configure_file(
 )
 
 # ============================================================================
+# Order Book Library (Project 2: High-Frequency Matching Engine)
+# ============================================================================
+# Header-only library for memory infrastructure and order book components
+add_library(itch_book INTERFACE)
+target_include_directories(itch_book INTERFACE ${CMAKE_SOURCE_DIR}/include)
+
+# ============================================================================
 # Tests
 # ============================================================================
 enable_testing()
+
+# Memory infrastructure tests (IntrusiveList, MemPool, Order)
+add_executable(itch_memory_test
+    tests/memory_test.cpp
+)
+target_link_libraries(itch_memory_test 
+    PRIVATE 
+        itch_book
+        GTest::gtest_main
+)
 
 add_executable(itch_tests
     tests/hello_test.cpp
@@ -142,6 +164,7 @@ target_link_libraries(itch_tests
 
 include(GoogleTest)
 gtest_discover_tests(itch_tests)
+gtest_discover_tests(itch_memory_test)
 
 # ============================================================================
 # Custom Targets
