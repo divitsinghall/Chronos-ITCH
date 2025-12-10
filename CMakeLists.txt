@@ -89,6 +89,7 @@ enable_testing()
 add_executable(itch_tests
     tests/hello_test.cpp
     tests/message_test.cpp
+    tests/parser_test.cpp
 )
 target_link_libraries(itch_tests 
     PRIVATE 
