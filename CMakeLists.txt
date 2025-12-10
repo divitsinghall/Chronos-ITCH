@@ -92,6 +92,20 @@ target_link_libraries(itch_driver
 )
 # HFT compile options for production code
 target_compile_options(itch_driver PRIVATE -fno-exceptions -fno-rtti)
+
+# ============================================================================
+# Chronos Market Replay Engine (ITCH Parser + OrderBook Integration)
+# ============================================================================
+add_executable(chronos_replay
+    src/replay_driver.cpp
+)
+target_link_libraries(chronos_replay
+    PRIVATE
+        itch_parser
+        itch_book
+)
+# HFT compile options for production code
+target_compile_options(chronos_replay PRIVATE -fno-exceptions -fno-rtti)
 # ============================================================================
 # Benchmarks
 # ============================================================================
