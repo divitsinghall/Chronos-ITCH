@@ -162,9 +162,20 @@ target_link_libraries(itch_tests
         GTest::gtest_main
 )
 
+## Matching engine tests (OrderBook, PriceLevel)
+add_executable(itch_matching_test
+    tests/matching_test.cpp
+)
+target_link_libraries(itch_matching_test 
+    PRIVATE 
+        itch_book
+        GTest::gtest_main
+)
+
 include(GoogleTest)
 gtest_discover_tests(itch_tests)
 gtest_discover_tests(itch_memory_test)
+gtest_discover_tests(itch_matching_test)
 
 # ============================================================================
 # Custom Targets
